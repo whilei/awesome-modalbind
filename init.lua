@@ -101,7 +101,7 @@ local function show_box(s, map, name)
 		for _, mapping in ipairs(map) do
 			if mapping[1] == "separator" then
 				label = label .. "\n\n<big>" ..
-					mapping[2] .. "</big>d"
+					mapping[2] .. "</big>"
 			elseif mapping[1] ~= "onClose" then
 				label = label .. "\n<b>" .. gears.string.xml_escape(mapping[1]) ..
 					"</b>  <span color=\"" .. "#dddddd" .. "\">" .. (mapping[3] or "???") .. "</span>"
