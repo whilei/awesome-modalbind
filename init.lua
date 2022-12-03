@@ -96,15 +96,15 @@ local function show_box(s, map, name)
 	local txt = mbox:get_children_by_id("text")[1]
 	mbox.screen = s
 
-	local label = "<big><b>" .. name .. "</b></big>"
+	local label = "<big><b>" .. name .. "</b></big>\n"
 	if settings.show_options then
 		for _, mapping in ipairs(map) do
 			if mapping[1] == "separator" then
 				label = label .. "\n\n<big>" ..
-					mapping[2] .. "</big>"
+					mapping[2] .. "</big>d"
 			elseif mapping[1] ~= "onClose" then
-				label = label .. "\n[ <b>" .. gears.string.xml_escape(mapping[1]) ..
-					"</b> ]  " .. (mapping[3] or "???")
+				label = label .. "\n<b>" .. gears.string.xml_escape(mapping[1]) ..
+					"</b>  <span color=\"" .. "#dddddd" .. "\">" .. (mapping[3] or "???") .. "</span>"
 			end
 		end
 
