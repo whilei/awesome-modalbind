@@ -103,8 +103,8 @@ local function show_box(s, map, name)
 				label = label .. "\n\n<big>" ..
 					mapping[2] .. "</big>"
 			elseif mapping[1] ~= "onClose" then
-				label = label .. "\n<b>" .. gears.string.xml_escape(mapping[1]) ..
-					"</b>\t" .. (mapping[3] or "???")
+				label = label .. "\n[ <b>" .. gears.string.xml_escape(mapping[1]) ..
+					"</b> ]  " .. (mapping[3] or "???")
 			end
 		end
 
