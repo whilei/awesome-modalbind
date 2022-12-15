@@ -66,15 +66,26 @@ function modalbind.init()
 							})
 
 	modewibox:setup({
-						{
-							id     = "text",
-							align  = "left",
-							font   = beautiful.modalbind_font or
-									beautiful.monospaced_font or
-									beautiful.fontface or
-									beautiful.font,
-							widget = wibox.widget.textbox
-						},
+						--{
+						--	{
+						--		id     = "title_name",
+						--		widget = wibox.widget.textbox,
+						--		layout = wibox.layout.align.horizontal,
+						--	},
+						--	{
+						--		--{
+						--		--	SITE OF FUTURE TEXTBOX
+						--		--},
+						--		--{
+						--		--	SITE OF FUTURE TEXTBOX
+						--		--},
+						--		id     = "textbox_container",
+						--		layout = wibox.layout.align.horizontal, -- I want boxes side-by-side.
+						--	},
+						--	id     = "p1",
+						--	layout = wibox.layout.align.vertical,
+						--	align  = "left",
+						--},
 						id      = "margin",
 						margins = beautiful.modebox_border_width or
 								beautiful.border_width,
@@ -89,73 +100,96 @@ function modalbind.init()
 end
 
 local function show_box(s, map, name)
-	local mbox  = s.modewibox
-	local mar   = mbox:get_children_by_id("margin")[1]
-	local txt   = mbox:get_children_by_id("text")[1]
-	mbox.screen = s
-
-	local label = ""
-	if name ~= "" then
-		label = "<big><b>" .. name .. "</b></big>\n"
-	else
-		-- noop
-	end
+	local mbox          = s.modewibox
+	mbox.screen         = s
+	local mar           = mbox:get_children_by_id("margin")[1]
+	local p1            = mar:get_children_by_id("p1")[1]
+	local titlebox      = p1:get_children_by_id("title_name")[1]
+	local txtc          = mbox:get_children_by_id("textbox_container")[1]
 
 	local arrow_color   = '#47A590' -- faded teal
 	local hotkey_color  = '#B162A0' -- faded pink
 	local submenu_color = '#1479B1' -- blue
 
-	if settings.show_options then
-		for _, mapping in ipairs(map) do
-			if mapping[1] == "separator" then
-
-				label = label .. "\n<big>" ..
-						mapping[2] .. "</big>"
-
-			elseif mapping[1] ~= "onClose" then
-
-				local keyname = mapping[1]
-				keyname       = string.gsub(keyname, "Return", "RET")
-				keyname       = string.gsub(keyname, "Space", "SPC")
-				keyname       = string.gsub(keyname, "Tab", "TAB")
-
-				local name    = "<span>" ..
-						(mapping[3] or "???") ..
-						"</span>"
-
-				if mapping[3] then
-					local first_char      = string.sub(mapping[3], 1, 1)
-					local is_submenu_name = first_char == '+'
-					if is_submenu_name then
-						name = "<span foreground='" .. submenu_color .. "'>" ..
-								mapping[3] ..
-								"</span>"
-					end
-				end
-				if name ~= "" then
-					label = label .. "\n"
-				end
-
-				-- ➞
-				-- 🡪
-				-- 🠢
-				label = label ..
-						--"<b><span background='#222222'> " ..
-						"<b><span> " ..
-						'<span foreground="' .. hotkey_color .. '">' ..
-						gears.string.xml_escape(keyname) ..
-						'</span>' ..
-						'</span>' ..
-						"</b>" ..
-						"<span foreground='" .. arrow_color .. "'> ➞ </span>" ..
-						name
-			end
-		end
-
+	-- First, lets do the title.
+	if name == "" then
+		name = "my temp namer"
 	end
-	txt:set_markup(label)
+	if name ~= "" then
+		titlebox:set_markup("<big><b>" .. name .. "</b></big>")
+	end
 
-	local x, y  = txt:get_preferred_size(s)
+	---- The textbox container is where we're going to put our textboxes.
+	--local textbox_container = wibox({
+	--									layout = wibox.layout.align.vertical,
+	--								})
+	--
+	--local textbox_parent    = wibox.widget({
+	--										   widget = wibox.container.background,
+	--										   bg     = "#ff0000",
+	--									   })
+	--
+	--local function get_markup_for_entry(keyname, fn, action)
+	--	if keyname == "separator" then
+	--		return "\n"
+	--	end
+	--	if keyname == "onClose" then
+	--		return
+	--	end
+	--
+	--	-- Abbreviate the key name so it looks like Spacemacs.
+	--	keyname = string.gsub(keyname, "Return", "RET")
+	--	keyname = string.gsub(keyname, "Space", "SPC")
+	--	keyname = string.gsub(keyname, "Tab", "TAB")
+	--
+	--	-- Handle configuration problems gracefully.
+	--	if not action or action == "" then
+	--		action = "???"
+	--	end
+	--
+	--	-- Assign the default markup value.
+	--	local action_markup = "<span>" .. action .. "</span>"
+	--
+	--	if action then
+	--		local first_char      = string.sub(action, 1, 1)
+	--		local is_submenu_name = first_char == '+'
+	--		if is_submenu_name then
+	--			action_markup = "<span foreground='" .. submenu_color .. "'>" .. action .. "</span>"
+	--		end
+	--	end
+	--
+	--	return "<b><span> " ..
+	--			'<span foreground="' .. hotkey_color .. '">' ..
+	--			gears.string.xml_escape(keyname) ..
+	--			'</span>' ..
+	--			'</span>' ..
+	--			"</b>" ..
+	--			"<span foreground='" .. arrow_color .. "'> ➞ </span>" ..
+	--			action_markup
+	--end
+	--
+	--local function mapping_to_textbox(mapping)
+	--	local w = wibox.widget.textbox({
+	--									   align = "left",
+	--								   })
+	--	w:set_markup(get_markup_for_entry(mapping[1], mapping[2], mapping[3]))
+	--end
+	--
+	--if settings.show_options then
+	--
+	--	local pair_count = 0
+	--	for _, mapping in ipairs(map) do
+	--		pair_count  = pair_count + 1
+	--
+	--		local txtbx = mapping_to_textbox(mapping)
+	--
+	--		textbox_parent:add(txtbx)
+	--	end
+	--end
+	--
+	--textbox_container:add(textbox_parent)
+
+	local x, y  = 1000, 400
 	mbox.width  = x + mar.left + mar.right
 	mbox.height = math.max(settings.height, y + mar.top + mar.bottom)
 	--mbox.width  = 1000
@@ -171,7 +205,6 @@ local function show_box(s, map, name)
 			}
 	)
 	mbox.opacity = settings.opacity
-
 	mbox.visible = true
 end
 
