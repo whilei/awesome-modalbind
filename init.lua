@@ -207,7 +207,7 @@ end
 
 modalbind.default_keys = {
 	{ "Escape", modalbind.close_box, "Exit Modal" },
-	{ "Return", modalbind.close_box, "Exit Modal" }
+	--{ "Return", modalbind.close_box, "Exit Modal" }
 }
 
 local function merge_default_keys(keymap)
