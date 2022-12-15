@@ -95,22 +95,49 @@ local function show_box(s, map, name)
 	mbox.screen = s
 
 	local label = "<big><b>" .. name .. "</b></big>\n"
+	if name == "" then
+		label = ""
+	end
+
+	local arrow_color   = '#47A590' -- faded teal
+	local hotkey_color  = '#B162A0' -- faded pink
+	local submenu_color = '#1479B1' -- blue
+
 	if settings.show_options then
 		for _, mapping in ipairs(map) do
 			if mapping[1] == "separator" then
-				label = label .. "\n\n<big>" ..
+
+				label = label .. "\n<big>" ..
 						mapping[2] .. "</big>"
+
 			elseif mapping[1] ~= "onClose" then
-				label = label ..
-						"\n[<b><span background='#222222'> " ..
-						'<span foreground="#00FCEC">' ..
-						gears.string.xml_escape(mapping[1]) ..
-						'</span>' ..
-						' </span>' ..
-						"</b>] " ..
-						"<span>" ..
+
+				local name = "<span>" ..
 						(mapping[3] or "???") ..
 						"</span>"
+
+				if mapping[3] then
+					local first_char      = string.sub(mapping[3], 1, 1)
+					local is_submenu_name = first_char == '+'
+					if is_submenu_name then
+						name = "<span foreground='" .. submenu_color .. "'>" ..
+								mapping[3] ..
+								"</span>"
+					end
+				end
+				if name ~= "" then
+					label = label .. "\n"
+				end
+				label = label ..
+						--"<b><span background='#222222'> " ..
+						"<b><span> " ..
+						'<span foreground="' .. hotkey_color .. '">' ..
+						gears.string.xml_escape(mapping[1]) ..
+						'</span>' ..
+						'</span>' ..
+						"</b>" ..
+						"<span foreground='" .. arrow_color .. "'> ➞ </span>" ..
+						name
 			end
 		end
 
@@ -120,6 +147,8 @@ local function show_box(s, map, name)
 	local x, y  = txt:get_preferred_size(s)
 	mbox.width  = x + mar.left + mar.right
 	mbox.height = math.max(settings.height, y + mar.top + mar.bottom)
+	--mbox.width  = 1000
+	--mbox.height = 300
 	awful.placement.align(
 			mbox,
 			{
