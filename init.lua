@@ -94,9 +94,11 @@ local function show_box(s, map, name)
 	local txt   = mbox:get_children_by_id("text")[1]
 	mbox.screen = s
 
-	local label = "<big><b>" .. name .. "</b></big>\n"
-	if name == "" then
-		label = ""
+	local label = ""
+	if name ~= "" then
+		label = "<big><b>" .. name .. "</b></big>\n"
+	else
+		-- noop
 	end
 
 	local arrow_color   = '#47A590' -- faded teal
@@ -112,7 +114,12 @@ local function show_box(s, map, name)
 
 			elseif mapping[1] ~= "onClose" then
 
-				local name = "<span>" ..
+				local keyname = mapping[1]
+				keyname       = string.gsub(keyname, "Return", "RET")
+				keyname       = string.gsub(keyname, "Space", "SPC")
+				keyname       = string.gsub(keyname, "Tab", "TAB")
+
+				local name    = "<span>" ..
 						(mapping[3] or "???") ..
 						"</span>"
 
@@ -128,11 +135,15 @@ local function show_box(s, map, name)
 				if name ~= "" then
 					label = label .. "\n"
 				end
+
+				-- ➞
+				-- 🡪
+				-- 🠢
 				label = label ..
 						--"<b><span background='#222222'> " ..
 						"<b><span> " ..
 						'<span foreground="' .. hotkey_color .. '">' ..
-						gears.string.xml_escape(mapping[1]) ..
+						gears.string.xml_escape(keyname) ..
 						'</span>' ..
 						'</span>' ..
 						"</b>" ..
@@ -201,8 +212,12 @@ function close_box(keymap, args)
 	layout_return()
 end
 
-function modalbind.close_box()
-	return close_box
+function modalbind.close_box(keymap, args)
+	return close_box(keymap, args)
+end
+
+function modalbind.keygrabber_stop()
+	keygrabber.stop()
 end
 
 modalbind.default_keys = {
@@ -250,6 +265,9 @@ function modalbind.grab(options)
 	end
 	call_key_if_present(keymap, "onOpen", args, use_lower)
 
+	--if awful.keygrabber.is_running then
+	--	awful.keygrabber:stop()
+	--end
 	keygrabber.run(function(mod, key, event)
 		if event == "release" then
 			return true
