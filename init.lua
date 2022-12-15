@@ -233,7 +233,7 @@ function modalbind.grab(options)
 				return true
 			end
 
-			keygrabber.stop()
+			keygrabber:stop()
 			mapping[2](args)
 
 			-- mapping "stay_in_mode" takes precedence over mode-wide setting
