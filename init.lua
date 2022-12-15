@@ -1,40 +1,38 @@
 -- awesome-modalbind - modal keybindings for awesomewm
 
 local awesome, client, mouse, screen, tag = awesome, client, mouse, screen, tag
-local modalbind = {}
-local wibox = require("wibox")
-local awful = require("awful")
-local beautiful = require("beautiful")
-local gears = require("gears")
-local nesting = 0
-local verbose = false
+local modalbind                           = {}
+local wibox                               = require("wibox")
+local awful                               = require("awful")
+local beautiful                           = require("beautiful")
+local gears                               = require("gears")
+local nesting                             = 0
+local verbose                             = false
 
 --local functions
 
-local defaults = {}
+local defaults                            = {}
 
-defaults.opacity = 1.0
-defaults.height = 22
-defaults.x_offset = 0
-defaults.y_offset = 0
-defaults.show_options = true
-defaults.show_default_options = true
-defaults.position = "bottom_left"
-defaults.honor_padding = true
-defaults.honor_workarea = true
+defaults.opacity                          = 1.0
+defaults.height                           = 22
+defaults.x_offset                         = 0
+defaults.y_offset                         = 0
+defaults.show_options                     = true
+defaults.show_default_options             = true
+defaults.position                         = "bottom_left"
+defaults.honor_padding                    = true
+defaults.honor_workarea                   = true
 
 -- Clone the defaults for the used settings
-local settings = {}
+local settings                            = {}
 for key, value in pairs(defaults) do
 	settings[key] = value
 end
 
 local prev_layout = nil
 
-local aliases = {}
-aliases[" "] = "space"
-
-
+local aliases     = {}
+aliases[" "]      = "space"
 
 local function layout_swap(new)
 	if type(new) == "number" and new >= 0 and new <= 3 then
@@ -52,48 +50,48 @@ end
 
 function modalbind.init()
 	local modewibox = wibox({
-			ontop=true,
-			visible=false,
-			x=0,
-			y=0,
-			width=1,
-			height=1,
-			opacity=defaults.opacity,
-			bg=beautiful.modebox_bg or
-				beautiful.bg_normal,
-			fg=beautiful.modebox_fg or
-				beautiful.fg_normal,
-			shape=gears.shape.round_rect,
-			type="toolbar"
-	})
+								ontop   = true,
+								visible = false,
+								x       = 0,
+								y       = 0,
+								width   = 1,
+								height  = 1,
+								opacity = defaults.opacity,
+								bg      = beautiful.modebox_bg or
+										beautiful.bg_normal,
+								fg      = beautiful.modebox_fg or
+										beautiful.fg_normal,
+								--shape=gears.shape.round_rect,
+								type    = "toolbar"
+							})
 
 	modewibox:setup({
-			{
-				id="text",
-				align="left",
-				font=beautiful.modalbind_font or
-					beautiful.monospaced_font or
-					beautiful.fontface or
-					beautiful.font,
-				widget=wibox.widget.textbox
-			},
-			id="margin",
-			margins=beautiful.modebox_border_width or
-				beautiful.border_width,
-			color=beautiful.modebox_border or
-				beautiful.border_focus,
-			layout=wibox.container.margin,
-	})
+						{
+							id     = "text",
+							align  = "left",
+							font   = beautiful.modalbind_font or
+									beautiful.monospaced_font or
+									beautiful.fontface or
+									beautiful.font,
+							widget = wibox.widget.textbox
+						},
+						id      = "margin",
+						margins = beautiful.modebox_border_width or
+								beautiful.border_width,
+						color   = beautiful.modebox_border or
+								beautiful.border_focus,
+						layout  = wibox.container.margin,
+					})
 
 	awful.screen.connect_for_each_screen(function(s)
-			s.modewibox = modewibox
+		s.modewibox = modewibox
 	end)
 end
 
 local function show_box(s, map, name)
-	local mbox = s.modewibox
-	local mar = mbox:get_children_by_id("margin")[1]
-	local txt = mbox:get_children_by_id("text")[1]
+	local mbox  = s.modewibox
+	local mar   = mbox:get_children_by_id("margin")[1]
+	local txt   = mbox:get_children_by_id("text")[1]
 	mbox.screen = s
 
 	local label = "<big><b>" .. name .. "</b></big>\n"
@@ -101,36 +99,36 @@ local function show_box(s, map, name)
 		for _, mapping in ipairs(map) do
 			if mapping[1] == "separator" then
 				label = label .. "\n\n<big>" ..
-					mapping[2] .. "</big>"
+						mapping[2] .. "</big>"
 			elseif mapping[1] ~= "onClose" then
 				label = label ..
-					"\n[<b><span background='#222222'> " ..
+						"\n[<b><span background='#222222'> " ..
 						'<span foreground="#00FCEC">' ..
-							gears.string.xml_escape(mapping[1]) ..
+						gears.string.xml_escape(mapping[1]) ..
 						'</span>' ..
 						' </span>' ..
-					"</b>] " ..
-					"<span>" ..
+						"</b>] " ..
+						"<span>" ..
 						(mapping[3] or "???") ..
-					"</span>"
+						"</span>"
 			end
 		end
 
 	end
 	txt:set_markup(label)
 
-	local x, y = txt:get_preferred_size(s)
-	mbox.width = x + mar.left + mar.right
+	local x, y  = txt:get_preferred_size(s)
+	mbox.width  = x + mar.left + mar.right
 	mbox.height = math.max(settings.height, y + mar.top + mar.bottom)
 	awful.placement.align(
-		mbox,
-		{
-			position=settings.position,
-			honor_padding=settings.honor_padding,
-			honor_workarea=settings.honor_workarea,
-			offset={x=settings.x_offset,
-					y=settings.y_offset}
-		}
+			mbox,
+			{
+				position       = settings.position,
+				honor_padding  = settings.honor_padding,
+				honor_workarea = settings.honor_workarea,
+				offset         = { x = settings.x_offset,
+								   y = settings.y_offset }
+			}
 	)
 	mbox.opacity = settings.opacity
 
@@ -152,7 +150,7 @@ local function mapping_for(keymap, key, use_lower)
 			m = m:lower()
 		end
 		if m == k or
-		(aliases[k] and m == k) then
+				(aliases[k] and m == k) then
 			return mapping
 		end
 	end
@@ -160,8 +158,10 @@ local function mapping_for(keymap, key, use_lower)
 end
 
 local function call_key_if_present(keymap, key, args, use_lower)
-	local callback = mapping_for(keymap,key, use_lower)
-	if callback then callback[2](args) end
+	local callback = mapping_for(keymap, key, use_lower)
+	if callback then
+		callback[2](args)
+	end
 end
 
 function close_box(keymap, args)
@@ -176,7 +176,6 @@ function modalbind.close_box()
 	return close_box
 end
 
-
 modalbind.default_keys = {
 	{ "Escape", modalbind.close_box, "Exit Modal" },
 	{ "Return", modalbind.close_box, "Exit Modal" }
@@ -184,11 +183,11 @@ modalbind.default_keys = {
 
 local function merge_default_keys(keymap)
 	local result = {}
-	for j,k in ipairs(modalbind.default_keys) do
+	for j, k in ipairs(modalbind.default_keys) do
 		local no_add = false
-		for i,m in ipairs(keymap) do
+		for i, m in ipairs(keymap) do
 			if k[1] ~= "separator" and
-				m[1] == k[1] then
+					m[1] == k[1] then
 				no_add = true
 				break
 			end
@@ -197,19 +196,19 @@ local function merge_default_keys(keymap)
 			table.insert(result, k)
 		end
 	end
-	for _,m in ipairs(keymap) do
+	for _, m in ipairs(keymap) do
 		table.insert(result, m)
 	end
 	return result
 end
 
 function modalbind.grab(options)
-	local keymap = merge_default_keys(options.keymap or {})
-	local name = options.name
+	local keymap       = merge_default_keys(options.keymap or {})
+	local name         = options.name
 	local stay_in_mode = options.stay_in_mode or false
-	local args = options.args
-	local layout = options.layout
-	local use_lower = options.case_insensitive or false
+	local args         = options.args
+	local layout       = options.layout
+	local use_lower    = options.case_insensitive or false
 
 	layout_swap(layout)
 	if name then
@@ -223,12 +222,14 @@ function modalbind.grab(options)
 	call_key_if_present(keymap, "onOpen", args, use_lower)
 
 	keygrabber.run(function(mod, key, event)
-		if event == "release" then return true end
+		if event == "release" then
+			return true
+		end
 
 		mapping = mapping_for(keymap, key, use_lower)
 		if mapping then
 			if (mapping[2] == close_box or
-				mapping[2] == modalbind.close_box) then
+					mapping[2] == modalbind.close_box) then
 				close_box(keymap, args)
 				return true
 			end
@@ -242,14 +243,16 @@ function modalbind.grab(options)
 			end
 
 			if stay_in_mode then
-				modalbind.grab{keymap = keymap,
-					name = name,
-					stay_in_mode = true,
-					args = args,
-					use_lower=use_lower}
+				modalbind.grab { keymap       = keymap,
+								 name         = name,
+								 stay_in_mode = true,
+								 args         = args,
+								 use_lower    = use_lower }
 			else
 				nesting = nesting - 1
-				if nesting < 1 then hide_box() end
+				if nesting < 1 then
+					hide_box()
+				end
 				layout_return()
 				return true
 			end
@@ -264,11 +267,15 @@ function modalbind.grab(options)
 end
 
 function modalbind.grabf(options)
-	return function() modalbind.grab(options) end
+	return function()
+		modalbind.grab(options)
+	end
 end
 
 --- Returns the wibox displaying the bound keys
-function modalbind.modebox() return mouse.screen.modewibox end
+function modalbind.modebox()
+	return mouse.screen.modewibox
+end
 
 --- Change the opacity of the modebox.
 -- @param amount opacity between 0.0 and 1.0, or nil to use default
