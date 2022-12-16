@@ -65,34 +65,38 @@ function modalbind.init()
 								type    = "toolbar"
 							})
 
-	modewibox:setup({
-						--{
-						--	{
-						--		id     = "title_name",
-						--		widget = wibox.widget.textbox,
-						--		layout = wibox.layout.align.horizontal,
-						--	},
-						--	{
-						--		--{
-						--		--	SITE OF FUTURE TEXTBOX
-						--		--},
-						--		--{
-						--		--	SITE OF FUTURE TEXTBOX
-						--		--},
-						--		id     = "textbox_container",
-						--		layout = wibox.layout.align.horizontal, -- I want boxes side-by-side.
-						--	},
-						--	id     = "p1",
-						--	layout = wibox.layout.align.vertical,
-						--	align  = "left",
-						--},
-						id      = "margin",
-						margins = beautiful.modebox_border_width or
-								beautiful.border_width,
-						color   = beautiful.modebox_border or
-								beautiful.border_focus,
-						layout  = wibox.container.margin,
-					})
+	modewibox:setup {
+		{
+			{
+				id     = "title_name",
+				widget = wibox.widget.textbox,
+			},
+			{
+				--{
+				--	SITE OF FUTURE TEXTBOX
+				--},
+				--{
+				--	SITE OF FUTURE TEXTBOX
+				--},
+				id          = "textbox_container",
+
+				layout      = wibox.layout.grid, -- I want boxes side-by-side.
+				homogeneous = true,
+				expand      = true,
+				spacing     = 5,
+				--min_cols_size = 10,
+				--min_rows_size = 10,
+			},
+			id     = "valigner",
+			layout = wibox.layout.align.vertical,
+		},
+		id      = "margin",
+		margins = beautiful.modebox_border_width or
+				beautiful.border_width,
+		color   = beautiful.modebox_border or
+				beautiful.border_focus,
+		layout  = wibox.container.margin,
+	}
 
 	awful.screen.connect_for_each_screen(function(s)
 		s.modewibox = modewibox
@@ -102,10 +106,14 @@ end
 local function show_box(s, map, name)
 	local mbox          = s.modewibox
 	mbox.screen         = s
+
 	local mar           = mbox:get_children_by_id("margin")[1]
-	local p1            = mar:get_children_by_id("p1")[1]
-	local titlebox      = p1:get_children_by_id("title_name")[1]
-	local txtc          = mbox:get_children_by_id("textbox_container")[1]
+	--local valignbox     = mbox:get_children_by_id("valigner")[1]
+	local tbc           = mbox:get_children_by_id("textbox_container")[1]
+	tbc.children        = {} -- reset because submenus want redraw
+	local titlebox      = mbox:get_children_by_id("title_name")[1]
+
+	-- "Layouts are collections of children widgets."
 
 	local arrow_color   = '#47A590' -- faded teal
 	local hotkey_color  = '#B162A0' -- faded pink
@@ -113,83 +121,83 @@ local function show_box(s, map, name)
 
 	-- First, lets do the title.
 	if name == "" then
-		name = "my temp namer"
+		name = "Modality"
 	end
 	if name ~= "" then
-		titlebox:set_markup("<big><b>" .. name .. "</b></big>")
+		titlebox:set_markup("<big><b>" .. name .. "</b></big>\n")
 	end
 
-	---- The textbox container is where we're going to put our textboxes.
-	--local textbox_container = wibox({
-	--									layout = wibox.layout.align.vertical,
-	--								})
-	--
-	--local textbox_parent    = wibox.widget({
-	--										   widget = wibox.container.background,
-	--										   bg     = "#ff0000",
-	--									   })
-	--
-	--local function get_markup_for_entry(keyname, fn, action)
-	--	if keyname == "separator" then
-	--		return "\n"
-	--	end
-	--	if keyname == "onClose" then
-	--		return
-	--	end
-	--
-	--	-- Abbreviate the key name so it looks like Spacemacs.
-	--	keyname = string.gsub(keyname, "Return", "RET")
-	--	keyname = string.gsub(keyname, "Space", "SPC")
-	--	keyname = string.gsub(keyname, "Tab", "TAB")
-	--
-	--	-- Handle configuration problems gracefully.
-	--	if not action or action == "" then
-	--		action = "???"
-	--	end
-	--
-	--	-- Assign the default markup value.
-	--	local action_markup = "<span>" .. action .. "</span>"
-	--
-	--	if action then
-	--		local first_char      = string.sub(action, 1, 1)
-	--		local is_submenu_name = first_char == '+'
-	--		if is_submenu_name then
-	--			action_markup = "<span foreground='" .. submenu_color .. "'>" .. action .. "</span>"
-	--		end
-	--	end
-	--
-	--	return "<b><span> " ..
-	--			'<span foreground="' .. hotkey_color .. '">' ..
-	--			gears.string.xml_escape(keyname) ..
-	--			'</span>' ..
-	--			'</span>' ..
-	--			"</b>" ..
-	--			"<span foreground='" .. arrow_color .. "'> ➞ </span>" ..
-	--			action_markup
-	--end
-	--
+	local function get_markup_for_entry(keyname, fn, action)
+		if keyname == "separator" then
+			return "\n"
+		end
+		if keyname == "onClose" then
+			return ""
+		end
+
+		-- Abbreviate the key name so it looks like Spacemacs.
+		keyname = string.gsub(keyname, "Return", "RET")
+		keyname = string.gsub(keyname, "Space", "SPC")
+		keyname = string.gsub(keyname, "Tab", "TAB")
+
+		-- Handle configuration problems gracefully.
+		if not action or action == "" then
+			action = "???"
+		end
+
+		-- Assign the default markup value.
+		local action_markup = "<span>" .. action .. "</span>"
+
+		if action then
+			local first_char      = string.sub(action, 1, 1)
+			local is_submenu_name = first_char == '+'
+			if is_submenu_name then
+				action_markup = "<span foreground='" .. submenu_color .. "'>" .. action .. "</span>"
+			end
+		end
+
+		return "<b><span> " ..
+				'<span foreground="' .. hotkey_color .. '">' ..
+				gears.string.xml_escape(keyname) ..
+				'</span>' ..
+				'</span>' ..
+				"</b>" ..
+				"<span foreground='" .. arrow_color .. "'> ➞ </span>" ..
+				action_markup
+	end
+
 	--local function mapping_to_textbox(mapping)
-	--	local w = wibox.widget.textbox({
-	--									   align = "left",
-	--								   })
-	--	w:set_markup(get_markup_for_entry(mapping[1], mapping[2], mapping[3]))
 	--end
-	--
-	--if settings.show_options then
-	--
-	--	local pair_count = 0
-	--	for _, mapping in ipairs(map) do
-	--		pair_count  = pair_count + 1
-	--
-	--		local txtbx = mapping_to_textbox(mapping)
-	--
-	--		textbox_parent:add(txtbx)
-	--	end
-	--end
-	--
+
+	--local textboxes  = {}
+	--local subtextbox = { layout = wibox.layout.align.vertical }
+
+	if settings.show_options then
+
+		local pair_count = 0
+		for _, mapping in ipairs(map) do
+
+			local m = get_markup_for_entry(mapping[1], mapping[2], mapping[3])
+			if m ~= "" then
+				local txtbx = wibox.widget.textbox()
+				txtbx:set_markup_silently(m)
+				--tbc:add(txtbx)
+				-- https://awesomewm.org/apidoc/widget_layouts/wibox.layout.grid.html
+				tbc:add_widget_at(txtbx, pair_count % 5 + 1, math.floor(pair_count / 5) + 1, 1) -- child, row, col, ~row_span, ~col_span
+
+				pair_count = pair_count + 1
+			end
+
+			--if #subtextbox > 5 then
+			--	table.insert(textboxes, subtextbox)
+			--	subtextbox = { layout = wibox.layout.align.vertical }
+			--end
+		end
+	end
+
 	--textbox_container:add(textbox_parent)
 
-	local x, y  = 1000, 400
+	local x, y  = s.workarea.width / 2, 5 * 16 + 48
 	mbox.width  = x + mar.left + mar.right
 	mbox.height = math.max(settings.height, y + mar.top + mar.bottom)
 	--mbox.width  = 1000
