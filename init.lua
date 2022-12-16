@@ -151,6 +151,7 @@ local function show_box(s, map, name)
 		keyname = string.gsub(keyname, "Return", "RET")
 		keyname = string.gsub(keyname, "Space", "SPC")
 		keyname = string.gsub(keyname, "Tab", "TAB")
+		keyname = string.gsub(keyname, "Escape", "ESC")
 
 		-- Handle configuration problems gracefully.
 		if not action or action == "" then
@@ -186,7 +187,7 @@ local function show_box(s, map, name)
 		for _, mapping in ipairs(map) do
 
 			local m = get_markup_for_entry(mapping[1], mapping[2], mapping[3])
-			if m ~= "" then
+			if string.lower(mapping[1]) ~= "escape" and m ~= "" then
 				local txtbx = wibox.widget.textbox()
 				txtbx:set_markup_silently(m)
 
@@ -349,7 +350,8 @@ function modalbind.grab(options)
 		end
 
 		mapping = mapping_for(keymap, key, use_lower)
-		if mapping then
+
+		if mapping and not _force_exit_mode then
 			if (mapping[2] == close_box or
 					mapping[2] == modalbind.close_box) then
 				close_box(keymap, args)
