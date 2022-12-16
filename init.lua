@@ -78,12 +78,13 @@ function modalbind.init()
 				--{
 				--	SITE OF FUTURE TEXTBOX
 				--},
-				id          = "textbox_container",
+				id              = "textbox_container",
 
-				layout      = wibox.layout.grid, -- I want boxes side-by-side.
-				homogeneous = true,
-				expand      = true,
-				spacing     = 5,
+				layout          = wibox.layout.grid, -- I want boxes side-by-side.
+				homogeneous     = true,
+				expand          = true,
+				spacing         = 2,
+				forced_num_rows = 5,
 				--min_cols_size = 10,
 				--min_rows_size = 10,
 			},
@@ -104,32 +105,43 @@ function modalbind.init()
 end
 
 local function show_box(s, map, name)
-	local mbox          = s.modewibox
-	mbox.screen         = s
+	local mbox     = s.modewibox
+	mbox.screen    = s
 
-	local mar           = mbox:get_children_by_id("margin")[1]
+	local mar      = mbox:get_children_by_id("margin")[1]
 	--local valignbox     = mbox:get_children_by_id("valigner")[1]
-	local tbc           = mbox:get_children_by_id("textbox_container")[1]
-	tbc.children        = {} -- reset because submenus want redraw
-	local titlebox      = mbox:get_children_by_id("title_name")[1]
+	local tbc      = mbox:get_children_by_id("textbox_container")[1]
+	tbc.children   = {} -- reset because submenus want redraw
+	local titlebox = mbox:get_children_by_id("title_name")[1]
 
 	-- "Layouts are collections of children widgets."
 
-	local arrow_color   = '#47A590' -- faded teal
-	local hotkey_color  = '#B162A0' -- faded pink
-	local submenu_color = '#1479B1' -- blue
+	local config   = {
+		arrow_color      = '#47A590', -- faded teal
+		hotkey_color     = '#B162A0', -- faded pink
+		submenu_color    = '#1479B1', -- blue
+		max_rows         = 5,
+		min_entry_height = 16,
+		min_entry_width  = 16,
+	}
+
 
 	-- First, lets do the title.
 	if name == "" then
-		name = "Modality"
+		--name = "Modality"
 	end
 	if name ~= "" then
 		titlebox:set_markup("<big><b>" .. name .. "</b></big>\n")
+		titlebox.visible = true
+	else
+		titlebox:set_markup("")
+		titlebox.visible = false
 	end
 
 	local function get_markup_for_entry(keyname, fn, action)
 		if keyname == "separator" then
-			return "\n"
+			--return "\n"
+			return ""
 		end
 		if keyname == "onClose" then
 			return ""
@@ -152,56 +164,75 @@ local function show_box(s, map, name)
 			local first_char      = string.sub(action, 1, 1)
 			local is_submenu_name = first_char == '+'
 			if is_submenu_name then
-				action_markup = "<span foreground='" .. submenu_color .. "'>" .. action .. "</span>"
+				action_markup = "<span foreground='" .. config.submenu_color .. "'>" .. action .. "</span>"
 			end
 		end
 
 		return "<b><span> " ..
-				'<span foreground="' .. hotkey_color .. '">' ..
+				'<span foreground="' .. config.hotkey_color .. '">' ..
 				gears.string.xml_escape(keyname) ..
 				'</span>' ..
 				'</span>' ..
 				"</b>" ..
-				"<span foreground='" .. arrow_color .. "'> ➞ </span>" ..
+				"<span foreground='" .. config.arrow_color .. "'> ➞ </span>" ..
 				action_markup
 	end
 
-	--local function mapping_to_textbox(mapping)
-	--end
-
-	--local textboxes  = {}
-	--local subtextbox = { layout = wibox.layout.align.vertical }
-
 	if settings.show_options then
 
-		local pair_count = 0
+		local _pc      = 0
+		--local _last_row, _last_col = 1, 1
+		local _largest = { width = 0, height = 0 }
 		for _, mapping in ipairs(map) do
 
 			local m = get_markup_for_entry(mapping[1], mapping[2], mapping[3])
 			if m ~= "" then
 				local txtbx = wibox.widget.textbox()
 				txtbx:set_markup_silently(m)
-				--tbc:add(txtbx)
+
+				local _w, _h    = txtbx:get_preferred_size()
+				_largest.width  = math.max(_largest.width, math.max(config.min_entry_width, _w))
+				_largest.height = math.max(_largest.height, math.max(config.min_entry_height, _h))
+
+				--local _r, _c    = tbc:get_next_empty(_last_row, _last_col)
+				--if _r > config.max_rows then
+				--	-- Reset the row, increment the column.
+				--	_r, _c = 1, _c + 1
+				--end
+
+				local _r        = _pc % config.max_rows + 1
+				local _c        = math.floor(_pc / config.max_rows) + 1
+
+				--tbc:add_widget_at(txtbx, _r, _c, 1, 1) -- child, row, col, ~row_span, ~col_span
+				tbc:add_widget_at(txtbx, _r, _c, 1, 1) -- child, row, col, ~row_span, ~col_span
+				-- tbc:add(txtbx)
 				-- https://awesomewm.org/apidoc/widget_layouts/wibox.layout.grid.html
-				tbc:add_widget_at(txtbx, pair_count % 5 + 1, math.floor(pair_count / 5) + 1, 1) -- child, row, col, ~row_span, ~col_span
 
-				pair_count = pair_count + 1
+				_pc = _pc + 1
+				--_last_row = _r
+				--_last_col = _c
 			end
-
-			--if #subtextbox > 5 then
-			--	table.insert(textboxes, subtextbox)
-			--	subtextbox = { layout = wibox.layout.align.vertical }
-			--end
 		end
+
+		tbc.min_cols_size        = _largest.width
+		tbc.min_rows_size        = _largest.height
+
+		local _drows, _dcols     = tbc:get_dimension()
+
+		mbox.width               = (_dcols * _largest.width) + (2 * tbc.spacing * _dcols) + (mar.right + mar.left)
+		local _height_calculated = (_drows * _largest.height) + (2 * tbc.spacing * _drows) + (mar.top + mar.bottom)
+		if name ~= "" then
+			local _, _tb_h     = titlebox:get_preferred_size()
+			_height_calculated = _height_calculated + _tb_h
+		end
+		mbox.height = math.max(settings.height, _height_calculated)
+
 	end
 
-	--textbox_container:add(textbox_parent)
+	--local x, y  = s.workarea.width / 2, 5 * 16 + 48
+	--mbox.width  = x + mar.left + mar.right
+	--mbox.height = math.max(settings.height, y + mar.top + mar.bottom)
 
-	local x, y  = s.workarea.width / 2, 5 * 16 + 48
-	mbox.width  = x + mar.left + mar.right
-	mbox.height = math.max(settings.height, y + mar.top + mar.bottom)
-	--mbox.width  = 1000
-	--mbox.height = 300
 	awful.placement.align(
 			mbox,
 			{
@@ -212,6 +243,9 @@ local function show_box(s, map, name)
 								   y = settings.y_offset }
 			}
 	)
+
+	--mbox:emit_signal("widget::layout_changed")
+	mbox:emit_signal("widget::redraw_needed")
 	mbox.opacity = settings.opacity
 	mbox.visible = true
 end
