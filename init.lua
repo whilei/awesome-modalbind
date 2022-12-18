@@ -169,8 +169,14 @@ local function show_box(s, map, name)
 			end
 		end
 
+		local underline_matches = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		local underline         = "none"
+		if string.find(underline_matches, keyname, 1, true) then
+			underline = "single"
+		end
+
 		return "<b><span> " ..
-				'<span foreground="' .. config.hotkey_color .. '">' ..
+				'<span underline="' .. underline .. '" foreground="' .. config.hotkey_color .. '">' ..
 				gears.string.xml_escape(keyname) ..
 				'</span>' ..
 				'</span>' ..
@@ -221,6 +227,7 @@ local function show_box(s, map, name)
 		local _drows, _dcols     = tbc:get_dimension()
 
 		mbox.width               = (_dcols * _largest.width) + (2 * tbc.spacing * _dcols) + (mar.right + mar.left)
+		mbox.width               = math.max(mbox.width, 400)
 		local _height_calculated = (_drows * _largest.height) + (2 * tbc.spacing * _drows) + (mar.top + mar.bottom)
 		if name ~= "" then
 			local _, _tb_h     = titlebox:get_preferred_size()
